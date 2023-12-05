@@ -1,0 +1,1 @@
+from .music_model import get_music_from_model

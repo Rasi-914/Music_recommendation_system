@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Expression Recognition</title>
+    <style>
+        body {
+            background-color: #f0f8ff; /* Lighter and soothing background color */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            overflow: auto; /* Add overflow auto to make content scrollable */
+        }
+
+        .half {
+            flex: 0 0 auto; /* Change this to ensure .half doesn't stretch */
+            border: 1px solid #ccc;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+            width: 70%;
+            text-align: center;
+        }
+
+        button {
+            background-color: #4CAF50; /* Green background */
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px; /* Rounded corners for buttons */
+        }
+
+        #emotionDisplay, #musicLinks {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0,0,0,.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #09f;
+            animation: spin 1s ease infinite;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        #bg {
+            display: block;
+            margin: 0 auto; /* Centers the image */
+        }
+        #emotionDisplay {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            color: #4CAF50; /* Color for the text */
+            font-weight: bold;
+            font-size: 1.2em;
+            text-shadow: 1px 1px 2px #aaa; /* Optional: Adds a subtle shadow to the text */
+            border: 1px solid #ddd; /* Optional: Adds a light border */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Adds a subtle shadow around the container */
+        }
+
+        .music-item {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .music-item img {
+            width: 100px; /* Adjust as needed */
+            height: 100px; /* Adjust as needed */
+            border-radius: 8px;
+        }
+
+        .music-item a {
+            text-decoration: none;
+            color: #4CAF50; /* Adjust color as needed */
+            font-weight: bold;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="half">
+        <h1 style="color:green;">Music Recommendation</h1>
+        <img id="bg" width="350px" height="350px" src="{{ url_for('video_feed') }}">
+        <div class="button-group">
+            <button onclick="toggleVideoFeed()">Pause/Resume Video Feed</button>
+            <button onclick="fetchEmotionAndMusic()">Get Music Recommendation</button>
+        </div>
+    </div>
+    <div class="half" id="songRecommendationSection" style="display:none;">
+        <h2 style="color:green;">Songs</h2>
+        <div id="emotionDisplay">Now Feeling: None</div>
+        <div id="loadingMessage" style="display:none;">
+            <div class="spinner"></div>
+            <p>Song fetching is in progress...</p>
+        </div>
+        <div id="musicLinks"></div>
+    </div>
+    
+
+    <script>
+        let videoFeedPaused = false;
+
+        function toggleVideoFeed() {
+            if (!videoFeedPaused) {
+                fetch('/pause_feed')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === "paused") {
+                            videoFeedPaused = true;
+                        }
+                    });
+            } else {
+                // Display the song recommendation section
+                document.getElementById('songRecommendationSection').style.display = 'none';
+                fetch('/resume_feed')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === "resumed") {
+                            videoFeedPaused = false;
+                        }
+                    });
+            }
+        }
+
+        function fetchEmotionAndMusic() {
+            // Display the song recommendation section
+            document.getElementById('songRecommendationSection').style.display = 'block';
+            if (!videoFeedPaused) {
+                fetch('/pause_feed')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === "paused") {
+                            videoFeedPaused = true;
+                        }
+                    });
+            }
+            fetch('/get_last_emotion')
+                .then(response => response.text())
+                .then(emotion => {
+                    if (emotion && emotion !== 'None') {
+                        document.getElementById('songRecommendationSection').style.display = 'block';
+                        let emotionDisplay = document.getElementById("emotionDisplay");
+                        let emoji = ""; // default emoji
+                        switch(emotion) {
+                            case "Happy": emoji = "😊"; break;
+                            case "Sad": emoji = "😢"; break;
+                            case "Neutral": emoji = "😐"; break;
+                            case "Surprise": emoji = "😮"; break;
+                            case "Fearful": emoji = "😨"; break;
+                            case "Disgusted": emoji = "🤢"; break;
+                            case "Angry": emoji = "😠"; break;
+                            default: emoji = "🤔"; 
+                        }
+                        emotionDisplay.innerText = "Now Feeling......" + emotion + " " + emoji;
+                        // Show loading message and graphic
+                        document.getElementById('loadingMessage').style.display = 'block';
+                        document.getElementById('musicLinks').innerHTML = '';
+
+                        fetch('/get_music?emotion=' + emotion)
+                            .then(response => response.json()) // assuming the response is a JSON array
+                            .then(musicTracks => {
+                                    const linksContainer = document.getElementById("musicLinks");
+                                    linksContainer.innerHTML = ''; // Clear previous content
+
+                                    musicTracks.forEach(track => {
+                                        const [albumName, songLink, imageUrl] = track;
+
+                                        // Create the music item container
+                                        const musicItem = document.createElement('div');
+                                        musicItem.className = 'music-item';
+
+                                        // Album image
+                                        const img = document.createElement('img');
+                                        img.src = imageUrl;
+                                        img.alt = albumName;
+
+                                        // Song link
+                                        const link = document.createElement('a');
+                                        link.href = songLink;
+                                        link.textContent = albumName;
+                                        link.target = '_blank';
+
+                                        // Append elements to the music item container
+                                        musicItem.appendChild(img);
+                                        musicItem.appendChild(link);
+
+                                        // Append the music item to the container
+                                        linksContainer.appendChild(musicItem);
+                                    });
+                                    document.getElementById('loadingMessage').style.display = 'none';
+                        })
+                    } else {
+                        document.getElementById("emotionDisplay").innerText = "No emotion detected";
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

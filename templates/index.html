@@ -1,0 +1,40 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face expression recognition</title>
+    <style>
+        /* Style to create two halves */
+        body {
+            background-color: "yellow"
+            margin: 0;
+            padding: 0;
+            height: 100vh; /* 100% of the viewport height */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .half {
+            flex: 1; /* Each half takes up equal space */
+            border: 0px solid #ccc;
+            
+            overflow: hidden; /* Optional: hide overflow content */
+        }
+    </style>
+  </head>
+  <body>
+   <center>
+    <div class="half">
+      <h1 style="color:green;"><span style="background-color:white;">Face expression recognition</span></h1>
+      <img id="bg" width=350px height=350px src="{{ url_for('video_feed') }}">
+    </div>
+    <div class="half" id="secondHalf">
+        <!-- Content for the second half -->
+        <h2 style="color:green;"><span style="background-color:white;">Song Recommendation</span></h2>
+        <label for="myTextBox">song:</label>
+        <input type="text" id="myTextBox" name="myTextBox">
+        <p>song that recommended for you.</p>
+    </div>
+   </center>
+  </body>
+</html>
